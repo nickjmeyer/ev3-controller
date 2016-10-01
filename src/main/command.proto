@@ -1,13 +1,17 @@
-package Ev3Comm;
+package Ev3Controller;
 
-message Command {
+message Ev3Command {
   enum Type {
     INIT = 0;
-    NEWROBOT = 1;
-    DELROBOT = 2;
-    VELOCITY = 3;
+    QUIT = 1;
+    NEWROBOT = 2;
+    DELROBOT = 3;
+    VELOCITY = 4;
   }
 
-  optional float xvel = 1;
-  optional float zrot = 2;
+  optional string id = 1;
+  optional Type type = 2;
+
+  optional float xvel = 3;
+  optional float zrot = 4;
 }

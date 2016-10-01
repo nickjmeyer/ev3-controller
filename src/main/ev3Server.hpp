@@ -1,38 +1,40 @@
-#ifndef BALL_SERVER_HPP
-#define BALL_SERVER_HPP
+#ifndef EV3_SERVER_HPP
+#define EV3_SERVER_HPP
 
 #include "networkWrapper.hpp"
-#include "ball.pb.h"
+#include "command.pb.h"
 #include <queue>
 #include <asio/error.hpp>
 
+namespace Ev3Controller {
 
 // random identifier
 std::string genIdentifier();
 
-class BallServer;
-class BallConnection;
-class BallAcceptor;
+class Ev3Server;
+class Ev3ServerConnection;
+class Ev3Acceptor;
 
-class BallServer {
+class Ev3Server {
 public:
-	void process(const bouncingBall::BallUpdate & bu,
-		std::shared_ptr<BallConnection> connection);
+	void processCommand(const std::vector<uint8_t> & buffer,
+		const std::shared_ptr<Ev3ServerConnection> connection);
 
-// private:
-public:
+	void quit();
+
+private:
 	// connection containers
-	std::map<std::shared_ptr<BallConnection>,
+	std::map<std::shared_ptr<Ev3ServerConnection>,
 					 std::string> connToId;
 	std::map<std::string,
-					 std::shared_ptr<BallConnection> > idToConn;
+					 std::shared_ptr<Ev3ServerConnection> > idToConn;
 };
 
 
-class BallConnection : public Connection
+class Ev3ServerConnection : public Connection
 {
 private:
-	std::shared_ptr<BallServer> ballSrv;
+	std::shared_ptr<Ev3Server> ev3Server;
 
 	void OnAccept( const std::string & host, uint16_t port );
 
@@ -47,21 +49,19 @@ private:
 	void OnError( const asio::error_code & error );
 
 public:
-	BallConnection( std::shared_ptr<BallServer> ballSrv,
+	Ev3ServerConnection( std::shared_ptr<Ev3Server> ev3Server,
 		std::shared_ptr< Hive > hive );
 
 
-	~BallConnection();
+	~Ev3ServerConnection();
 
 	std::shared_ptr<Connection> NewConnection();
-
-	void SendUpdate(const bouncingBall::BallUpdate & letter);
 };
 
-class BallAcceptor : public Acceptor
+class Ev3Acceptor : public Acceptor
 {
 private:
-	std::shared_ptr<BallServer> ballSrv;
+	std::shared_ptr<Ev3Server> ev3Server;
 
 	bool OnAccept( std::shared_ptr< Connection > connection,
 		const std::string & host, uint16_t port );
@@ -71,10 +71,12 @@ private:
 	void OnError( const asio::error_code & error );
 
 public:
-	BallAcceptor( std::shared_ptr<BallServer> ballSrv,
+	Ev3Acceptor( std::shared_ptr<Ev3Server> ev3Server,
 		std::shared_ptr< Hive > hive );
 
-	~BallAcceptor();
+	~Ev3Acceptor();
 };
+
+} // Ev3Controller namespace
 
 #endif

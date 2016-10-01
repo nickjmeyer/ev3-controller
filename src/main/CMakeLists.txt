@@ -9,10 +9,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories($ENV{HOME}/libraries/asio/include)
 
 # robot binaries
-add_executable(robotServer robotServer.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(robotServer networkWrapper
+add_executable(ev3Server ev3Server.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(ev3Server networkWrapper
 	${PROTOBUF_LIBRARY})
 
-add_executable(robotClient robotClient.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(robotClient networkWrapper
+add_executable(ev3Client ev3Client.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(ev3Client networkWrapper
 	${PROTOBUF_LIBRARY})
