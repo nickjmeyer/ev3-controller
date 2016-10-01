@@ -1,0 +1,13 @@
+package Ev3Comm;
+
+message Command {
+  enum Type {
+    INIT = 0;
+    NEWROBOT = 1;
+    DELROBOT = 2;
+    VELOCITY = 3;
+  }
+
+  optional float xvel = 1;
+  optional float zrot = 2;
+}
