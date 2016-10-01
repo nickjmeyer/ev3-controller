@@ -8,11 +8,11 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories($ENV{HOME}/libraries/asio/include)
 
-# ball binaries
-add_executable(ballServer ballServer.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(ballServer networkWrapper
+# robot binaries
+add_executable(robotServer robotServer.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(robotServer networkWrapper
 	${PROTOBUF_LIBRARY})
 
-add_executable(ballClient ballClient.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(ballClient networkWrapper
+add_executable(robotClient robotClient.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(robotClient networkWrapper
 	${PROTOBUF_LIBRARY})
