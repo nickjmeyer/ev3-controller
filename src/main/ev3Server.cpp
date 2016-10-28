@@ -15,13 +15,13 @@ std::mutex global_rng_lock;
 void ServerRunThread( std::shared_ptr< Hive > hive)
 {
 	global_stream_lock.lock();
-	std::cout << "thread started" << std::endl;
+  // std::cout << "thread started" << std::endl;
 	global_stream_lock.unlock();
 
 	hive->Run();
 
 	global_stream_lock.lock();
-	std::cout << "thread ended" << std::endl;
+  // std::cout << "thread ended" << std::endl;
 	global_stream_lock.unlock();
 }
 
@@ -51,7 +51,7 @@ void Ev3Server::processCommand(const std::vector<uint8_t> & buffer,
 	command.ParseFromString(std::string(buffer.begin(),buffer.end()));
 
 	global_stream_lock.lock();
-	std::cout << "[" << __FUNCTION__ << "]" << std::endl;
+  // std::cout << "[" << __FUNCTION__ << "]" << std::endl;
 	global_stream_lock.unlock();
 
 
@@ -86,8 +86,8 @@ void Ev3Server::drop(std::shared_ptr<Ev3ServerConnection> connection) {
 void Ev3ServerConnection::OnAccept( const std::string & host, uint16_t port )
 {
 	global_stream_lock.lock();
-	std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-						<< host << ":" << port << std::endl;
+  // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
+  // 					<< host << ":" << port << std::endl;
 	global_stream_lock.unlock();
 
 	// Start the next receive
@@ -98,8 +98,8 @@ void Ev3ServerConnection::OnAccept( const std::string & host, uint16_t port )
 void Ev3ServerConnection::OnConnect( const std::string & host, uint16_t port )
 {
 	global_stream_lock.lock();
-	std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-						<< host << ":" << port << std::endl;
+  // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
+  // 					<< host << ":" << port << std::endl;
 	global_stream_lock.unlock();
 
 	// Start the next receive
@@ -139,12 +139,14 @@ void Ev3ServerConnection::OnTimer( const std::chrono::milliseconds & delta )
 void Ev3ServerConnection::OnError( const asio::error_code & error )
 {
 	global_stream_lock.lock();
-	std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
-						<< ": " << error.message() << std::endl;
+  // std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
+  // 					<< ": " << error.message() << std::endl;
   global_stream_lock.unlock();
 
-  this->ev3Server->drop(
-          std::dynamic_pointer_cast<Ev3ServerConnection>(shared_from_this()));
+  if (error != asio::error::operation_aborted)
+      this->ev3Server->drop(
+              std::dynamic_pointer_cast<Ev3ServerConnection>(
+                      shared_from_this()));
 }
 
 Ev3ServerConnection::Ev3ServerConnection(
@@ -167,8 +169,8 @@ bool Ev3Acceptor::OnAccept( std::shared_ptr< Connection > connection,
 	const std::string & host, uint16_t port )
 {
 	global_stream_lock.lock();
-	std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-						<< host << ":" << port << std::endl;
+  // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
+  // 					<< host << ":" << port << std::endl;
 	global_stream_lock.unlock();
 
 	return true;
@@ -191,7 +193,7 @@ void Ev3Acceptor::OnTimer( const std::chrono::milliseconds & delta )
 void Ev3Acceptor::OnError( const asio::error_code & error )
 {
 	global_stream_lock.lock();
-	std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error << std::endl;
+  // std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error << std::endl;
 	global_stream_lock.unlock();
 }
 Ev3Acceptor::Ev3Acceptor( std::shared_ptr<Ev3Server> ev3Server,
@@ -208,21 +210,20 @@ Ev3Acceptor::~Ev3Acceptor()
 InputPoller::InputPoller(std::shared_ptr< Ev3Server > & server)
     : server(server), mode(ROBOT_SELECT),
       width(30), height(10),
+      startx((80 - width) / 2), starty((24 - height) / 2),
       xVel(0), zRot(0) {
+}
 
+void InputPoller::poll() {
     initscr();
     clear();
     noecho();
     cbreak();	/* Line buffering disabled. pass on everything */
 
-    int startx = (80 - WIDTH) / 2;
-    int starty = (24 - HEIGHT) / 2;
+    khbit();
 
     menu_win = newwin(height,width,startx,starty);
     keypad(menu_win, TRUE);
-}
-
-void InputPoller::poll() {
     while(mode != ROBOT_QUIT) {
         refresh();
         switch (mode) {
@@ -230,15 +231,18 @@ void InputPoller::poll() {
             poll_select();
             break;
         }
-        case ROBOT_DRIVE: {
-            poll_drive();
-            break;
-        }
+        // case ROBOT_DRIVE: {
+        //     poll_drive();
+        //     break;
+        // }
         default:
             mode = ROBOT_QUIT;
             break;
         }
     }
+    clrtoeol();
+    refresh();
+    endwin();
 }
 
 void InputPoller::refresh_id() {
@@ -256,72 +260,66 @@ void InputPoller::poll_select() {
     int c;
     int choice = 0;
 
+    refresh_id();
     print_menu();
-    while(1)
-    {
-        c = wgetch(menu_win);
-        refresh_id();
-        choice %= id.size();
 
-        switch(c) {
-        case KEY_UP:
-            --choice;
-            choice %= id.size();
-            break;
-        case KEY_DOWN:
-            ++choice;
-            choice %= id.size();
-        case 10:
-            idChoice = id.at(choice);
-            break;
-        default:
-            refresh();
-            break;
-        }
-        print_menu();
-        if(choice != 0)	/* User did a choice come out of the infinite loop */
-            break;
+    c = wgetch(menu_win);
+    refresh_id();
+    choice %= id.size();
+
+    switch(c) {
+    case KEY_UP:
+        --choice;
+        choice %= id.size();
+        break;
+    case KEY_DOWN:
+        ++choice;
+        choice %= id.size();
+    case 10:
+        idChoice = id.at(choice);
+        break;
+    default:
+        refresh();
+        break;
     }
-    clrtoeol();
-    refresh();
-    endwin();
+    print_menu();
 }
 
 void InputPoller::print_menu() {
     switch (mode) {
     case ROBOT_SELECT: {
-        print_select();
+        print_menu_select();
         break;
     }
-    case ROBOT_DRIVE: {
-        print_drive();
-        break;
-    }
+    // case ROBOT_DRIVE: {
+    //     print_drive();
+    //     break;
+    // }
     default:
         break;
     }
 }
 
 
-void InputPoller::print_select() {
+void InputPoller::print_menu_select() {
     int x, y, i;
 
     x = 2;
     y = 2;
     box(menu_win, 0, 0);
-    for(i = 0; i < choices.size(); ++i)
-    {	if(highlight == i) /* High light the present choice */
-        {	wattron(menu_win, A_REVERSE);
-            mvwprintw(menu_win, y, x, "%s", choices[i].c_str());
+    for(i = 0; i < id.size(); ++i)
+    {
+        if(idChoice == id.at(i)) /* High light the present choice */
+        {
+            wattron(menu_win, A_REVERSE);
+            mvwprintw(menu_win, y, x, "%s", id.at(i).c_str());
             wattroff(menu_win, A_REVERSE);
         }
         else
-            mvwprintw(menu_win, y, x, "%s", choices[i].c_str());
+            mvwprintw(menu_win, y, x, "%s", id.at(i).c_str());
         ++y;
     }
     wrefresh(menu_win);
-}
-
 }
 
 
@@ -345,7 +343,9 @@ int main( int argc, char * argv[] )
 	std::thread worker_thread(
     std::bind(&Ev3Controller::ServerRunThread, hive));
 
-  // Ev3Controller::poll_input( hive );
+  Ev3Controller::InputPoller inputPoller(ballSrv);
+
+  inputPoller.poll();
 
   hive->Stop();
 

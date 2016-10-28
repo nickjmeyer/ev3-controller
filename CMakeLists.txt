@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 project(ev3-controller)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
 
 add_definitions(-DASIO_STANDALONE=1)
 add_definitions(-DASIO_HEADER_ONLY=1)

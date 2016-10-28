@@ -7,6 +7,7 @@
 #include <set>
 #include <map>
 #include <asio/error.hpp>
+#include <ncurses.h>
 
 namespace Ev3Controller {
 
@@ -88,10 +89,13 @@ class InputPoller {
 private:
     std::shared_ptr< Ev3Server> server;
 
-    Controller mode;
+    ControllerMode mode;
 
     const int width;
     const int height;
+
+    const int startx;
+    const int starty;
 
     double xVel;
     double zRot;
@@ -107,9 +111,11 @@ private:
 
     void poll_drive();
 
-    void print_manu_select();
+    void print_menu();
 
-    void print_manu_drive();
+    void print_menu_select();
+
+    void print_menu_drive();
 
 public:
     InputPoller(std::shared_ptr< Ev3Server > & server );
