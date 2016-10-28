@@ -4,6 +4,8 @@
 #include "networkWrapper.hpp"
 #include "command.pb.h"
 #include <queue>
+#include <set>
+#include <map>
 #include <asio/error.hpp>
 
 namespace Ev3Controller {
@@ -17,64 +19,98 @@ class Ev3Acceptor;
 
 class Ev3Server {
 public:
-	void processCommand(const std::vector<uint8_t> & buffer,
-		const std::shared_ptr<Ev3ServerConnection> connection);
+    void processCommand(const std::vector<uint8_t> & buffer,
+            const std::shared_ptr<Ev3ServerConnection> & connection);
 
-	void quit();
+    const std::set<std::string> & getId() const;
+
+    void drop(std::shared_ptr<Ev3ServerConnection> connection);
 
 private:
-	// connection containers
-	std::map<std::shared_ptr<Ev3ServerConnection>,
-					 std::string> connToId;
-	std::map<std::string,
-					 std::shared_ptr<Ev3ServerConnection> > idToConn;
+    // connection containers
+    std::set<std::string> id;
+    std::map<std::shared_ptr<Ev3ServerConnection>,
+             std::string> connToId;
+    std::map<std::string,
+             std::shared_ptr<Ev3ServerConnection> > idToConn;
 };
 
 
 class Ev3ServerConnection : public Connection
 {
 private:
-	std::shared_ptr<Ev3Server> ev3Server;
+    std::shared_ptr<Ev3Server> ev3Server;
 
-	void OnAccept( const std::string & host, uint16_t port );
+    void OnAccept( const std::string & host, uint16_t port );
 
-	void OnConnect( const std::string & host, uint16_t port );
+    void OnConnect( const std::string & host, uint16_t port );
 
-	void OnSend( const std::vector< uint8_t > & buffer );
+    void OnSend( const std::vector< uint8_t > & buffer );
 
-	void OnRecv( std::vector< uint8_t > & buffer );
+    void OnRecv( std::vector< uint8_t > & buffer );
 
-	void OnTimer( const std::chrono::milliseconds & delta );
+    void OnTimer( const std::chrono::milliseconds & delta );
 
-	void OnError( const asio::error_code & error );
+    void OnError( const asio::error_code & error );
 
 public:
-	Ev3ServerConnection( std::shared_ptr<Ev3Server> ev3Server,
-		std::shared_ptr< Hive > hive );
+    Ev3ServerConnection( std::shared_ptr<Ev3Server> ev3Server,
+            std::shared_ptr< Hive > hive );
 
 
-	~Ev3ServerConnection();
+    ~Ev3ServerConnection();
 
-	std::shared_ptr<Connection> NewConnection();
+    std::shared_ptr<Connection> NewConnection();
 };
 
 class Ev3Acceptor : public Acceptor
 {
 private:
-	std::shared_ptr<Ev3Server> ev3Server;
+    std::shared_ptr<Ev3Server> ev3Server;
 
-	bool OnAccept( std::shared_ptr< Connection > connection,
-		const std::string & host, uint16_t port );
+    bool OnAccept( std::shared_ptr< Connection > connection,
+            const std::string & host, uint16_t port );
 
-	void OnTimer( const std::chrono::milliseconds & delta );
+    void OnTimer( const std::chrono::milliseconds & delta );
 
-	void OnError( const asio::error_code & error );
+    void OnError( const asio::error_code & error );
 
 public:
-	Ev3Acceptor( std::shared_ptr<Ev3Server> ev3Server,
-		std::shared_ptr< Hive > hive );
+    Ev3Acceptor( std::shared_ptr<Ev3Server> ev3Server,
+            std::shared_ptr< Hive > hive );
 
-	~Ev3Acceptor();
+    ~Ev3Acceptor();
+};
+
+enum ControllerMode {ROBOT_SELECT, ROBOT_DRIVE, ROBOT_QUIT};
+
+class InputPoller {
+private:
+    std::shared_ptr< Ev3Server> server;
+
+    Controller mode;
+
+    const int width;
+    const int height;
+
+    double xVel;
+    double zRot;
+
+    WINDOW * menu_win;
+
+    std::vector<std::string> id;
+
+    void poll_select();
+    void poll_drive();
+
+    void print_manu_select();
+
+    void print_manu_drive();
+
+public:
+    InputPoller(std::shared_ptr< Ev3Server > & server );
+
+    void poll();
 };
 
 } // Ev3Controller namespace

@@ -9,5 +9,7 @@ add_definitions(-DASIO_NO_TYPEID=1)
 
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
+set(CURSES_NEED_NCURSES TRUE)
+find_package(Curses REQUIRED)
 
 add_subdirectory(src/main)

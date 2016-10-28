@@ -11,8 +11,8 @@ include_directories($ENV{HOME}/libraries/asio/include)
 # robot binaries
 add_executable(ev3Server ev3Server.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(ev3Server networkWrapper
-	${PROTOBUF_LIBRARY})
+  ${PROTOBUF_LIBRARY} ${CURSES_LIBRARIES})
 
 add_executable(ev3Client ev3Client.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(ev3Client networkWrapper
-	${PROTOBUF_LIBRARY})
+  ${PROTOBUF_LIBRARY})

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <ncurses.h>
 
 namespace Ev3Controller {
 
@@ -44,7 +45,7 @@ std::string genIdentifier() {
 }
 
 void Ev3Server::processCommand(const std::vector<uint8_t> & buffer,
-	std::shared_ptr<Ev3ServerConnection> connection) {
+  const std::shared_ptr<Ev3ServerConnection> & connection) {
 
 	Ev3Command command;
 	command.ParseFromString(std::string(buffer.begin(),buffer.end()));
@@ -55,15 +56,31 @@ void Ev3Server::processCommand(const std::vector<uint8_t> & buffer,
 
 
 	if (command.type() == Ev3Command_Type_INIT) {
-		const std::string id = genIdentifier();
+    const std::string newId = genIdentifier();
 		Ev3Command response;
 		response.set_type(Ev3Command_Type_INIT);
-		response.set_id(id);
+    response.set_id(newId);
 		std::string responseStr;
 		response.SerializeToString(&responseStr);
 		connection->Send(
-			std::vector<uint8_t>(responseStr.begin(),responseStr.end()));
+      std::vector<uint8_t>(responseStr.begin(),responseStr.end()));
+
+    // add to records
+    id.insert(newId);
+    connToId[connection] = newId;
+    idToConn[newId] = connection;
 	}
+}
+
+const std::set<std::string> & Ev3Server::getId() const {
+    return id;
+}
+
+void Ev3Server::drop(std::shared_ptr<Ev3ServerConnection> connection) {
+    std::string connId = connToId.at(connection);
+    connToId.erase(connection);
+    idToConn.erase(connId);
+    id.erase(connId);
 }
 
 void Ev3ServerConnection::OnAccept( const std::string & host, uint16_t port )
@@ -124,8 +141,10 @@ void Ev3ServerConnection::OnError( const asio::error_code & error )
 	global_stream_lock.lock();
 	std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
 						<< ": " << error.message() << std::endl;
-	global_stream_lock.unlock();
+  global_stream_lock.unlock();
 
+  this->ev3Server->drop(
+          std::dynamic_pointer_cast<Ev3ServerConnection>(shared_from_this()));
 }
 
 Ev3ServerConnection::Ev3ServerConnection(
@@ -185,6 +204,127 @@ Ev3Acceptor::~Ev3Acceptor()
 {
 }
 
+
+InputPoller::InputPoller(std::shared_ptr< Ev3Server > & server)
+    : server(server), mode(ROBOT_SELECT),
+      width(30), height(10),
+      xVel(0), zRot(0) {
+
+    initscr();
+    clear();
+    noecho();
+    cbreak();	/* Line buffering disabled. pass on everything */
+
+    int startx = (80 - WIDTH) / 2;
+    int starty = (24 - HEIGHT) / 2;
+
+    menu_win = newwin(height,width,startx,starty);
+    keypad(menu_win, TRUE);
+}
+
+void InputPoller::poll() {
+    while(mode != ROBOT_QUIT) {
+        refresh();
+        switch (mode) {
+        case ROBOT_SELECT: {
+            poll_select();
+            break;
+        }
+        case ROBOT_DRIVE: {
+            poll_drive();
+            break;
+        }
+        default:
+            mode = ROBOT_QUIT;
+            break;
+        }
+    }
+}
+
+void InputPoller::poll_select() {
+    int c;
+    int highlight = 0;
+
+    print_menu();
+    while(1)
+    {
+        c = wgetch(menu_win);
+        switch(c) {
+        case KEY_UP:
+            highlight++;
+            highlight %=
+                --highlight;
+            break;
+        case KEY_DOWN:
+            if((highlight + 1) == n_choices)
+                highlight = 0;
+            else
+                ++highlight;
+            break;
+        case 10:
+            choice = highlight;
+            break;
+        default:
+            refresh();
+            break;
+        }
+        print_menu();
+        if(choice != 0)	/* User did a choice come out of the infinite loop */
+            break;
+    }
+    clrtoeol();
+    refresh();
+    endwin();
+}
+
+void InputPoller::print_menu() {
+    switch (mode) {
+    case ROBOT_SELECT: {
+        print_select();
+        break;
+    }
+    case ROBOT_DRIVE: {
+        print_drive();
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+
+void InputPoller::print_select() {
+    std::vector<std::string> choices;
+    const std::set<std::string> & id = this->server->getId();
+    {
+        std::set<std::string>::const_iterator it, end;
+        end = id.end();
+        for (it = id.begin(); id != end; ++it) {
+            choices.push_back(*it);
+        }
+    }
+
+    int x, y, i;
+
+    x = 2;
+    y = 2;
+    box(menu_win, 0, 0);
+    for(i = 0; i < choices.size(); ++i)
+    {	if(highlight == i) /* High light the present choice */
+        {	wattron(menu_win, A_REVERSE);
+            mvwprintw(menu_win, y, x, "%s", choices[i].c_str());
+            wattroff(menu_win, A_REVERSE);
+        }
+        else
+            mvwprintw(menu_win, y, x, "%s", choices[i].c_str());
+        ++y;
+    }
+    wrefresh(menu_win);
+}
+
+}
+
+
 } // Ev3Controller namespace
 
 int main( int argc, char * argv[] )
@@ -203,14 +343,11 @@ int main( int argc, char * argv[] )
 	acceptor->Accept( connection );
 
 	std::thread worker_thread(
-		std::bind(&Ev3Controller::ServerRunThread, hive));
+    std::bind(&Ev3Controller::ServerRunThread, hive));
 
-	std::cin.clear();
-	std::cin.ignore();
+  // Ev3Controller::poll_input( hive );
 
-
-
-	hive->Stop();
+  hive->Stop();
 
 	worker_thread.join();
 
