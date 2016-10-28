@@ -241,28 +241,38 @@ void InputPoller::poll() {
     }
 }
 
+void InputPoller::refresh_id() {
+    id.clear();
+
+    const std::set<std::string> & idSet = this->server->getId();
+    std::set<std::string>::const_iterator it, end;
+    end = idSet.end();
+    for (it = idSet.begin(); it != end; ++it) {
+        id.push_back(*it);
+    }
+}
+
 void InputPoller::poll_select() {
     int c;
-    int highlight = 0;
+    int choice = 0;
 
     print_menu();
     while(1)
     {
         c = wgetch(menu_win);
+        refresh_id();
+        choice %= id.size();
+
         switch(c) {
         case KEY_UP:
-            highlight++;
-            highlight %=
-                --highlight;
+            --choice;
+            choice %= id.size();
             break;
         case KEY_DOWN:
-            if((highlight + 1) == n_choices)
-                highlight = 0;
-            else
-                ++highlight;
-            break;
+            ++choice;
+            choice %= id.size();
         case 10:
-            choice = highlight;
+            idChoice = id.at(choice);
             break;
         default:
             refresh();
@@ -294,16 +304,6 @@ void InputPoller::print_menu() {
 
 
 void InputPoller::print_select() {
-    std::vector<std::string> choices;
-    const std::set<std::string> & id = this->server->getId();
-    {
-        std::set<std::string>::const_iterator it, end;
-        end = id.end();
-        for (it = id.begin(); id != end; ++it) {
-            choices.push_back(*it);
-        }
-    }
-
     int x, y, i;
 
     x = 2;

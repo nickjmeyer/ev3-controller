@@ -99,8 +99,12 @@ private:
     WINDOW * menu_win;
 
     std::vector<std::string> id;
+    std::string idChoice;
+
+    void refresh_id();
 
     void poll_select();
+
     void poll_drive();
 
     void print_manu_select();
