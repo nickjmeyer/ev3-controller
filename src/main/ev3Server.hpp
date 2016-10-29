@@ -104,12 +104,13 @@ private:
 
     std::vector<std::string> id;
     std::string idChoice;
+    int choice;
 
     void refresh_id();
 
-    void poll_select();
+    void poll_select(const int ch);
 
-    void poll_drive();
+    void poll_drive(const int ch);
 
     void print_menu();
 

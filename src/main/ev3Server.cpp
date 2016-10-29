@@ -211,7 +211,8 @@ InputPoller::InputPoller(std::shared_ptr< Ev3Server > & server)
     : server(server), mode(ROBOT_SELECT),
       width(30), height(10),
       startx((80 - width) / 2), starty((24 - height) / 2),
-      xVel(0), zRot(0) {
+      xVel(0), zRot(0),
+      choice(0) {
 }
 
 void InputPoller::poll() {
@@ -220,26 +221,40 @@ void InputPoller::poll() {
     noecho();
     cbreak();	/* Line buffering disabled. pass on everything */
 
-    khbit();
-
     menu_win = newwin(height,width,startx,starty);
+
+    // nodelay(menu_win, TRUE);
+
     keypad(menu_win, TRUE);
-    while(mode != ROBOT_QUIT) {
-        refresh();
-        switch (mode) {
-        case ROBOT_SELECT: {
-            poll_select();
-            break;
-        }
-        // case ROBOT_DRIVE: {
-        //     poll_drive();
-        //     break;
-        // }
-        default:
-            mode = ROBOT_QUIT;
-            break;
-        }
-    }
+    refresh();
+
+    std::cout << "x: " << startx << std::endl
+              << "y: " << starty << std::endl;
+
+    print_menu();
+    mvprintw(0, 0, "Use arrow keys to go up and down, Press enter to select a choice");
+    wgetch(menu_win);
+
+    // while(mode != ROBOT_QUIT) {
+    //     refresh_id();
+    //     print_menu();
+    //     const int ch = wgetch(menu_win);
+    //     if(ch != ERR) {
+    //         switch (mode) {
+    //         case ROBOT_SELECT: {
+    //             poll_select(ch);
+    //             break;
+    //         }
+    //             // case ROBOT_DRIVE: {
+    //             //     poll_drive();
+    //             //     break;
+    //             // }
+    //         default:
+    //             mode = ROBOT_QUIT;
+    //             break;
+    //         }
+    //     }
+    // }
     clrtoeol();
     refresh();
     endwin();
@@ -248,26 +263,23 @@ void InputPoller::poll() {
 void InputPoller::refresh_id() {
     id.clear();
 
-    const std::set<std::string> & idSet = this->server->getId();
-    std::set<std::string>::const_iterator it, end;
-    end = idSet.end();
-    for (it = idSet.begin(); it != end; ++it) {
-        id.push_back(*it);
-    }
+    id.push_back("one");
+    id.push_back("two");
+    id.push_back("three");
+
+    // const std::set<std::string> & idSet = this->server->getId();
+    // std::set<std::string>::const_iterator it, end;
+    // end = idSet.end();
+    // for (it = idSet.begin(); it != end; ++it) {
+    //     id.push_back(*it);
+    // }
 }
 
-void InputPoller::poll_select() {
-    int c;
-    int choice = 0;
-
-    refresh_id();
-    print_menu();
-
-    c = wgetch(menu_win);
+void InputPoller::poll_select(const int ch) {
     refresh_id();
     choice %= id.size();
 
-    switch(c) {
+    switch(ch) {
     case KEY_UP:
         --choice;
         choice %= id.size();
@@ -279,9 +291,9 @@ void InputPoller::poll_select() {
         idChoice = id.at(choice);
         break;
     default:
-        refresh();
         break;
     }
+
     print_menu();
 }
 
@@ -307,18 +319,18 @@ void InputPoller::print_menu_select() {
     x = 2;
     y = 2;
     box(menu_win, 0, 0);
-    for(i = 0; i < id.size(); ++i)
-    {
-        if(idChoice == id.at(i)) /* High light the present choice */
-        {
-            wattron(menu_win, A_REVERSE);
-            mvwprintw(menu_win, y, x, "%s", id.at(i).c_str());
-            wattroff(menu_win, A_REVERSE);
-        }
-        else
-            mvwprintw(menu_win, y, x, "%s", id.at(i).c_str());
-        ++y;
-    }
+    // for(i = 0; i < id.size(); ++i)
+    // {
+    //     // if(idChoice == id.at(i)) /* High light the present choice */
+    //     // {
+    //     //     wattron(menu_win, A_REVERSE);
+    //     //     mvwprintw(menu_win, y, x, "%s", id.at(i).c_str());
+    //     //     wattroff(menu_win, A_REVERSE);
+    //     // }
+    //     // else
+    //     mvwprintw(menu_win, y, x, "%s", id.at(i).c_str());
+    //     ++y;
+    // }
     wrefresh(menu_win);
 }
 
@@ -330,26 +342,26 @@ int main( int argc, char * argv[] )
 	std::shared_ptr<Ev3Controller::Ev3Server> ballSrv(
 		new Ev3Controller::Ev3Server() );
 
-	std::shared_ptr< Hive > hive( new Hive() );
+  // std::shared_ptr< Hive > hive( new Hive() );
 
-	std::shared_ptr< Ev3Controller::Ev3Acceptor > acceptor(
-		new Ev3Controller::Ev3Acceptor( ballSrv, hive ) );
-	acceptor->Listen( "0.0.0.0", 7777 );
+  // std::shared_ptr< Ev3Controller::Ev3Acceptor > acceptor(
+  // 	new Ev3Controller::Ev3Acceptor( ballSrv, hive ) );
+  // acceptor->Listen( "0.0.0.0", 7777 );
 
-	std::shared_ptr< Ev3Controller::Ev3ServerConnection > connection(
-		new Ev3Controller::Ev3ServerConnection(ballSrv,hive));
-	acceptor->Accept( connection );
+  // std::shared_ptr< Ev3Controller::Ev3ServerConnection > connection(
+  // 	new Ev3Controller::Ev3ServerConnection(ballSrv,hive));
+  // acceptor->Accept( connection );
 
-	std::thread worker_thread(
-    std::bind(&Ev3Controller::ServerRunThread, hive));
+  // std::thread worker_thread(
+  //   std::bind(&Ev3Controller::ServerRunThread, hive));
 
   Ev3Controller::InputPoller inputPoller(ballSrv);
 
   inputPoller.poll();
 
-  hive->Stop();
+  // hive->Stop();
 
-	worker_thread.join();
+  // worker_thread.join();
 
 	return 0;
 }
