@@ -4,7 +4,7 @@
 #include <sstream>
 #include "command.pb.h"
 
-#ifdef CLIENT_PLATFORM_EV3
+#ifdef BUILD_FOR_EV3
 
 #include "ev3dev.hpp"
 namespace ev3 = ev3dev;
@@ -16,7 +16,7 @@ namespace Ev3Controller {
 
 class Ev3Robot {
 public:
-#ifdef CLIENT_PLATFORM_EV3
+#ifdef BUILD_FOR_EV3
     Ev3Robot(const ev3dev::address_type left, const ev3dev::address_type right,
             const float wheelBase);
 #else
@@ -29,7 +29,7 @@ public:
 private:
     double x_l;
     double z_a;
-#ifdef CLIENT_PLATFORM_EV3
+#ifdef BUILD_FOR_EV3
     ev3dev::large_motor leftMotor;
     ev3dev::large_motor rightMotor;
     const float wheelBase;

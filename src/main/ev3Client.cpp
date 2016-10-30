@@ -15,7 +15,7 @@ namespace Ev3Controller {
 std::mutex global_stream_lock;
 
 
-#ifdef CLIENT_PLATFORM_EV3
+#ifdef BUILD_FOR_EV3
 Ev3Client::Ev3Client()
     : isInit_(false), alive_(true),
       robot(Ev3Robot(ev3dev::OUTPUT_A,ev3dev::OUTPUT_D,2.25)) {

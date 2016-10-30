@@ -4,7 +4,7 @@
 namespace Ev3Controller {
 
 
-#ifdef CLIENT_PLATFORM_EV3
+#ifdef BUILD_FOR_EV3
 Ev3Robot::Ev3Robot(const ev3dev::address_type left, const ev3dev::address_type right,
         const float wheelBase)
     : x_l(0.0), z_a(0.0),
@@ -24,7 +24,7 @@ void Ev3Robot::setVelocity(const Ev3Command & command){
     x_l = command.xvel();
     z_a = command.zrot();
 
-#ifdef CLIENT_PLATFORM_EV3
+#ifdef BUILD_FOR_EV3
     double left_sp = x_l - (1.0 - 2.0*(x_l < 0)) * z_a * this->wheelBase;
     double right_sp = x_l + (1.0 - 2.0*(x_l < 0)) * z_a * this->wheelBase;
 
