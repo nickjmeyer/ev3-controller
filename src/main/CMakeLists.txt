@@ -8,7 +8,7 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories($ENV{HOME}/libraries/asio/include)
 
-if(BUILD_FOR_EV3 ON)
+if(BUILD_FOR_EV3)
   # client
   add_executable(ev3Client ev3Client.cpp ev3Robot.cpp ev3dev.cpp
     ${PROTO_SRCS} ${PROTO_HDRS})
