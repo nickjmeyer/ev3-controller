@@ -14,8 +14,6 @@ add_definitions(-DASIO_NO_TYPEID=1)
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 
-message(${BUILD_FOR_EV3})
-
 if(BUILD_FOR_EV3 EQUAL "EV3")
   add_definitions(-DBUILD_FOR_EV3)
 else()
