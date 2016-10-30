@@ -341,21 +341,45 @@ void InputPoller::poll_select() {
 }
 
 
+void InputPoller::throttle_speeds(const bool & x_vel_changed) {
+    const double w = 2.25;
+    if (x_vel_changed) {
+        xVel = std::max(std::min(xVel,100.0),-100.0);
+
+
+        const double zRotUpr = std::min((xVel + 100.0) / w, (100 - xVel) / w);
+        const double zRotLwr = std::max((xVel - 100.0) / w, (-xVel - 100)/ w);
+
+        zRot = std::max(std::min(zRot,zRotUpr),zRotLwr);
+    } else {
+        zRot = std::max(std::min(zRot,100.0/w),-100.0/w);
+
+        const double xVelUpr = std::min(100 + zRot*w, 100 - zRot*w);
+        const double xVelLwr = std::max(-100 + zRot*w, -100 - zRot*w);
+        xVel = std::max(std::min(xVel,xVelUpr),xVelLwr);
+    }
+}
+
+
 void InputPoller::poll_drive() {
     while(mode == ROBOT_DRIVE) {
         const int ch = wgetch(menu_win);
         switch (ch) {
         case KEY_UP:
             xVel += 1.0;
+            throttle_speeds(true);
             break;
         case KEY_DOWN:
             xVel -= 1.0;
+            throttle_speeds(true);
             break;
         case KEY_LEFT:
-            zRot -= 1.0;
+            zRot += 1.0;
+            throttle_speeds(false);
             break;
         case KEY_RIGHT:
-            zRot += 1.0;
+            zRot -= 1.0;
+            throttle_speeds(false);
             break;
         case 32:
             // SPACEBAR

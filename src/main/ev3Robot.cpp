@@ -41,8 +41,12 @@ void Ev3Robot::setVelocity(const Ev3Command & command){
 
     this->leftMotor.set_duty_cycle_sp(left_sp);
     this->rightMotor.set_duty_cycle_sp(right_sp);
-    this->leftMotor.run_forever();
-    this->rightMotor.run_forever();
+    this->leftMotor.run_direct();
+    this->rightMotor.run_direct();
+    std::cout << "Set motor speeds"
+              << "(" << left_sp << ", " << right_sp << ")"
+              << std::endl;
+
 #endif
 
     this->logVelocity();

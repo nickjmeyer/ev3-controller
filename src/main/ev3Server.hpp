@@ -122,6 +122,8 @@ private:
 
     void print_menu_drive();
 
+    void throttle_speeds(const bool & x_vel_changed);
+
 public:
     InputPoller(std::shared_ptr< Ev3Server > & server );
 

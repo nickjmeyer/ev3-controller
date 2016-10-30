@@ -190,7 +190,7 @@ int main( int argc, char * argv[] )
     while(ev3Client->alive()){
         hive->Poll();
         std::this_thread::sleep_for(
-                std::chrono::microseconds(10));
+                std::chrono::microseconds(100));
     }
 
     return 0;
