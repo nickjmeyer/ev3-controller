@@ -14,7 +14,7 @@ add_definitions(-DASIO_NO_TYPEID=1)
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 
-if(BUILD_FOR_EV3 EQUAL "EV3")
+if(BUILD_FOR_EV3)
   add_definitions(-DBUILD_FOR_EV3)
 else()
   set(CURSES_NEED_NCURSES TRUE)
