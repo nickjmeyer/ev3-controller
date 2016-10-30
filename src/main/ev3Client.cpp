@@ -10,6 +10,9 @@
 #include <functional>
 #include <chrono>
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 namespace Ev3Controller {
 
 std::mutex global_stream_lock;
@@ -183,14 +186,7 @@ std::shared_ptr<Connection> Ev3ClientConnection::NewConnection () {
 
 int main( int argc, char * argv[] )
 {
-    std::string hostname = "localhost";
-    if(argc == 2) {
-        hostname = argv[1];
-    } else if (argc > 2) {
-        std::cout << "Too many command line arguments." << std::endl;
-        return 1;
-    }
-
+    std::string hostname = TOSTRING(EV3_SERVER_HOSTNAME);
 
     std::shared_ptr<Ev3Controller::Ev3Client> ev3Client(
             new Ev3Controller::Ev3Client() );
