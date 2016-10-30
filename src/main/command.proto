@@ -6,7 +6,7 @@ message Ev3Command {
     QUIT = 1;
     NEWROBOT = 2;
     DELROBOT = 3;
-    VELOCITY = 4;
+    DRIVE = 4;
   }
 
   optional string id = 1;

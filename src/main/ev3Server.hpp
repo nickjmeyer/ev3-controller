@@ -25,7 +25,11 @@ public:
 
     const std::set<std::string> & getId() const;
 
-    void drop(std::shared_ptr<Ev3ServerConnection> connection);
+    void drop(const std::shared_ptr<Ev3ServerConnection> & connection);
+
+    void sendCommand(const std::string & recipient, const Ev3Command & command);
+
+    void quit();
 
 private:
     // connection containers
@@ -108,9 +112,9 @@ private:
 
     void refresh_id();
 
-    void poll_select(const int ch);
+    void poll_select();
 
-    void poll_drive(const int ch);
+    void poll_drive();
 
     void print_menu();
 
