@@ -479,6 +479,9 @@ int main( int argc, char * argv[] )
 
     inputPoller.poll();
 
+    std::this_thread::sleep_for(
+            std::chrono::seconds(3));
+
     hive->Stop();
 
     worker_thread.join();
