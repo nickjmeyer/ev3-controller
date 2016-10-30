@@ -15,6 +15,20 @@ namespace Ev3Controller {
 std::mutex global_stream_lock;
 
 
+void ClientRunThread( const std::shared_ptr< Hive > & hive)
+{
+    // global_stream_lock.lock();
+    // std::cout << "thread started" << std::endl;
+    // global_stream_lock.unlock();
+
+    hive->Run();
+
+    // global_stream_lock.lock();
+    // std::cout << "thread ended" << std::endl;
+    // global_stream_lock.unlock();
+}
+
+
 #ifdef BUILD_FOR_EV3
 Ev3Client::Ev3Client()
     : isInit_(false), alive_(true),
@@ -33,9 +47,9 @@ void Ev3Client::processCommand(const std::vector<uint8_t> & buffer,
     Ev3Command command;
     command.ParseFromString(std::string(buffer.begin(),buffer.end()));
 
-    global_stream_lock.lock();
-    std::cout << "[" << __FUNCTION__ << "]" << std::endl;
-    global_stream_lock.unlock();
+    // global_stream_lock.lock();
+    // std::cout << "[" << __FUNCTION__ << "]" << std::endl;
+    // global_stream_lock.unlock();
 
     if(command.type() == Ev3Command_Type_INIT) {
         init(command.id(),connection);
@@ -49,9 +63,9 @@ void Ev3Client::processCommand(const std::vector<uint8_t> & buffer,
 
 void Ev3Client::init(std::string id,
         const std::shared_ptr<Ev3ClientConnection> connection) {
-    global_stream_lock.lock();
-    std::cout << "[" << __FUNCTION__ << "]: " << id << std::endl;
-    global_stream_lock.unlock();
+    // global_stream_lock.lock();
+    // std::cout << "[" << __FUNCTION__ << "]: " << id << std::endl;
+    // global_stream_lock.unlock();
 
     this->connection = connection;
     this->id = id;
@@ -73,10 +87,10 @@ void Ev3Client::kill() {
 
 void Ev3ClientConnection::OnAccept( const std::string & host, uint16_t port )
 {
-    global_stream_lock.lock();
-    std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-              << host << ":" << port << std::endl;
-    global_stream_lock.unlock();
+    // global_stream_lock.lock();
+    // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
+    //           << host << ":" << port << std::endl;
+    // global_stream_lock.unlock();
 
     // Start the next receive
     Recv();
@@ -84,10 +98,10 @@ void Ev3ClientConnection::OnAccept( const std::string & host, uint16_t port )
 
 void Ev3ClientConnection::OnConnect( const std::string & host, uint16_t port )
 {
-    global_stream_lock.lock();
-    std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-              << host << ":" << port << std::endl;
-    global_stream_lock.unlock();
+    // global_stream_lock.lock();
+    // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
+    //           << host << ":" << port << std::endl;
+    // global_stream_lock.unlock();
 
     // create message
     Ev3Command command;
@@ -138,10 +152,10 @@ void Ev3ClientConnection::OnTimer( const std::chrono::milliseconds & delta )
 
 void Ev3ClientConnection::OnError( const asio::error_code & error )
 {
-    global_stream_lock.lock();
-    std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
-              << ": " << error.message() << std::endl;
-    global_stream_lock.unlock();
+    // global_stream_lock.lock();
+    // std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
+    //           << ": " << error.message() << std::endl;
+    // global_stream_lock.unlock();
     if (error == asio::error::eof) {
         this->ev3Client->kill();
     }
@@ -187,11 +201,17 @@ int main( int argc, char * argv[] )
             new Ev3Controller::Ev3ClientConnection( ev3Client,hive ) );
     connection->Connect( hostname , 7777 );
 
-    while(ev3Client->alive()){
-        hive->Poll();
+    std::thread worker_thread(
+            std::bind(&Ev3Controller::ClientRunThread, hive));
+
+    while(ev3Client->alive()) {
         std::this_thread::sleep_for(
-                std::chrono::microseconds(100));
+                std::chrono::seconds(1));
     }
+
+    hive->Stop();
+
+    worker_thread.join();
 
     return 0;
 }
