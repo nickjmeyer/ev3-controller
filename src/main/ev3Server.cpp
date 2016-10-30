@@ -448,6 +448,7 @@ void InputPoller::print_menu_select() {
 
 
 void InputPoller::print_menu_drive() {
+    box(menu_win, 0, 0);
     mvwprintw(menu_win,1,1,"%s: %s","Robot",idChoice.c_str());
     mvwprintw(menu_win,3,1,"vel: % 6.3f",xVel);
     mvwprintw(menu_win,4,1,"rot: % 6.3f",zRot);
