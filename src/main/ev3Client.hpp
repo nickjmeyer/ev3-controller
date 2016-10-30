@@ -3,6 +3,7 @@
 
 #include "networkWrapper.hpp"
 #include "command.pb.h"
+#include "ev3Robot.hpp"
 #include <queue>
 
 namespace Ev3Controller {
@@ -32,6 +33,8 @@ private:
     bool isInit_;
     std::string id;
     bool alive_;
+
+    Ev3Robot robot;
 };
 
 

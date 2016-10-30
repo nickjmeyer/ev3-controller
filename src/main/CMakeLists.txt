@@ -15,11 +15,11 @@ target_link_libraries(ev3Server networkWrapper
 
 
 # client
-if(EV3DEV_PLATFORM EQUAL "EV3")
-  add_executable(ev3Client ev3Client.cpp robot.cpp ev3dev.cpp
+if(CLIENT_PLATFORM EQUAL "EV3")
+  add_executable(ev3Client ev3Client.cpp ev3Robot.cpp ev3dev.cpp
     ${PROTO_SRCS} ${PROTO_HDRS})
 else()
-  add_executable(ev3Client ev3Client.cpp robot.cpp
+  add_executable(ev3Client ev3Client.cpp ev3Robot.cpp
     ${PROTO_SRCS} ${PROTO_HDRS})
 endif()
 

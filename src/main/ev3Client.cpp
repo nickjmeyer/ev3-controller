@@ -15,9 +15,17 @@ namespace Ev3Controller {
 std::mutex global_stream_lock;
 
 
+#ifdef CLIENT_PLATFORM_EV3
 Ev3Client::Ev3Client()
-    : isInit_(false), alive_(true) {
+    : isInit_(false), alive_(true),
+      robot(Ev3Robot(ev3dev::OUTPUT_A,ev3dev::OUTPUT_D,2.25)) {
 }
+#else
+Ev3Client::Ev3Client()
+    : isInit_(false), alive_(true),
+      robot(Ev3Robot()) {
+}
+#endif
 
 void Ev3Client::processCommand(const std::vector<uint8_t> & buffer,
         const std::shared_ptr<Ev3ClientConnection> & connection) {
@@ -34,9 +42,7 @@ void Ev3Client::processCommand(const std::vector<uint8_t> & buffer,
     } else if (command.type() == Ev3Command_Type_QUIT) {
         this->kill();
     } else if(command.type() == Ev3Command_Type_DRIVE) {
-        global_stream_lock.lock();
-        std::cout << "VELOCITY MESSAGE" << std::endl;
-        global_stream_lock.unlock();
+        this->robot.setVelocity(command);
     }
 
 }
