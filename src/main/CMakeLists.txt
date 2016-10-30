@@ -8,11 +8,20 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories($ENV{HOME}/libraries/asio/include)
 
-# robot binaries
+# server
 add_executable(ev3Server ev3Server.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(ev3Server networkWrapper
   ${PROTOBUF_LIBRARY} ${CURSES_LIBRARIES})
 
-add_executable(ev3Client ev3Client.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+
+# client
+if(EV3DEV_PLATFORM EQUAL "EV3")
+  add_executable(ev3Client ev3Client.cpp robot.cpp ev3dev.cpp
+    ${PROTO_SRCS} ${PROTO_HDRS})
+else()
+  add_executable(ev3Client ev3Client.cpp robot.cpp
+    ${PROTO_SRCS} ${PROTO_HDRS})
+endif()
+
 target_link_libraries(ev3Client networkWrapper
   ${PROTOBUF_LIBRARY})
