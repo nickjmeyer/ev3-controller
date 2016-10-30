@@ -159,7 +159,7 @@ void Ev3ClientConnection::OnError( const asio::error_code & error )
     // std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
     //           << ": " << error.message() << std::endl;
     // global_stream_lock.unlock();
-    if (error == asio::error::eof) {
+    if (error == asio::error::eof || error == asio::error::connection_refused) {
         this->ev3Client->kill();
     }
 }
