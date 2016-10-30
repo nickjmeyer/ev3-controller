@@ -11,13 +11,14 @@ add_definitions(-DASIO_STANDALONE=1)
 add_definitions(-DASIO_HEADER_ONLY=1)
 add_definitions(-DASIO_NO_TYPEID=1)
 
-if(CLIENT_PLATFORM EQUAL "EV3")
-  add_definitions(-DCLIENT_PLATFORM_EV3)
-endif()
-
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
-set(CURSES_NEED_NCURSES TRUE)
-find_package(Curses REQUIRED)
+
+if(CLIENT_PLATFORM EQUAL "EV3")
+  add_definitions(-DCLIENT_PLATFORM_EV3)
+else()
+  set(CURSES_NEED_NCURSES TRUE)
+  find_package(Curses REQUIRED)
+endif()
 
 add_subdirectory(src/main)
