@@ -9,6 +9,7 @@
 #include <sstream>
 #include <functional>
 #include <chrono>
+#include <glog/logging.h>
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -20,15 +21,15 @@ std::mutex global_stream_lock;
 
 void ClientRunThread( const std::shared_ptr< Hive > & hive)
 {
-    // global_stream_lock.lock();
-    // std::cout << "thread started" << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Starting thread.";
+    global_stream_lock.unlock();
 
     hive->Run();
 
-    // global_stream_lock.lock();
-    // std::cout << "thread ended" << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Quitting thread.";
+    global_stream_lock.unlock();
 }
 
 
@@ -50,9 +51,9 @@ void Ev3Client::processCommand(const std::vector<uint8_t> & buffer,
     Ev3Command command;
     command.ParseFromString(std::string(buffer.begin(),buffer.end()));
 
-    // global_stream_lock.lock();
-    // std::cout << "[" << __FUNCTION__ << "]" << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Processing command.";
+    global_stream_lock.unlock();
 
     if(command.type() == Ev3Command_Type_INIT) {
         init(command.id(),connection);
@@ -66,9 +67,9 @@ void Ev3Client::processCommand(const std::vector<uint8_t> & buffer,
 
 void Ev3Client::init(std::string id,
         const std::shared_ptr<Ev3ClientConnection> connection) {
-    // global_stream_lock.lock();
-    // std::cout << "[" << __FUNCTION__ << "]: " << id << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Initializing robot.";
+    global_stream_lock.unlock();
 
     this->connection = connection;
     this->id = id;
@@ -90,10 +91,9 @@ void Ev3Client::kill() {
 
 void Ev3ClientConnection::OnAccept( const std::string & host, uint16_t port )
 {
-    // global_stream_lock.lock();
-    // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-    //           << host << ":" << port << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Accepted.";
+    global_stream_lock.unlock();
 
     // Start the next receive
     Recv();
@@ -101,10 +101,9 @@ void Ev3ClientConnection::OnAccept( const std::string & host, uint16_t port )
 
 void Ev3ClientConnection::OnConnect( const std::string & host, uint16_t port )
 {
-    // global_stream_lock.lock();
-    // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-    //           << host << ":" << port << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Connected.";
+    global_stream_lock.unlock();
 
     // create message
     Ev3Command command;
@@ -124,19 +123,17 @@ void Ev3ClientConnection::OnConnect( const std::string & host, uint16_t port )
 
 void Ev3ClientConnection::OnSend( const std::vector< uint8_t > & buffer )
 {
-    // global_stream_lock.lock();
-    // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-    // 					<< buffer.size() << " bytes" << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Sending.";
+    global_stream_lock.unlock();
 }
 
 void Ev3ClientConnection::OnRecv( std::vector< uint8_t > & buffer )
 {
 
-    // global_stream_lock.lock();
-    // std::cout << "[" << __PRETTY_FUNCTION__ << "] "
-    // 					<< buffer.size() << " bytes" << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Receiving.";
+    global_stream_lock.unlock();
 
     ev3Client->processCommand(buffer,
             std::dynamic_pointer_cast<Ev3ClientConnection>(shared_from_this()));
@@ -148,17 +145,16 @@ void Ev3ClientConnection::OnRecv( std::vector< uint8_t > & buffer )
 
 void Ev3ClientConnection::OnTimer( const std::chrono::milliseconds & delta )
 {
-    // global_stream_lock.lock();
-    // std::cout << "[" << __PRETTY_FUNCTION__ << "] " << delta << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(INFO) << "Timer.";
+    global_stream_lock.unlock();
 }
 
 void Ev3ClientConnection::OnError( const asio::error_code & error )
 {
-    // global_stream_lock.lock();
-    // std::cout << "[" << __PRETTY_FUNCTION__ << "] " << error
-    //           << ": " << error.message() << std::endl;
-    // global_stream_lock.unlock();
+    global_stream_lock.lock();
+    LOG(ERROR) << "Error: " << error.message() << ".";
+    global_stream_lock.unlock();
     if (error == asio::error::eof || error == asio::error::connection_refused) {
         this->ev3Client->kill();
     }
@@ -186,7 +182,10 @@ std::shared_ptr<Connection> Ev3ClientConnection::NewConnection () {
 
 int main( int argc, char * argv[] )
 {
+    google::InitGoogleLogging(argv[0]);
+
     std::string hostname = TOSTRING(EV3_SERVER_HOSTNAME);
+    LOG(INFO) << "Hostname: " << hostname << ".";
 
     std::shared_ptr<Ev3Controller::Ev3Client> ev3Client(
             new Ev3Controller::Ev3Client() );
