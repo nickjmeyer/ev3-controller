@@ -1,0 +1,3 @@
+[submodule "asio"]
+	path = libs/asio
+	url = git:chriskohlhoff/asio
