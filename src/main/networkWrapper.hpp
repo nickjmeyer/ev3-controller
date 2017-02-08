@@ -8,9 +8,10 @@
 #include <list>
 #include <cstdint>
 #include <functional>
-#include <asio/ip/tcp.hpp>
-#include <asio/strand.hpp>
-#include <asio/basic_waitable_timer.hpp>
+#include <asio.hpp>
+// #include <asio/ip/tcp.hpp>
+// #include <asio/strand.hpp>
+// #include <asio/basic_waitable_timer.hpp>
 #include <chrono>
 
 //-----------------------------------------------------------------------------
@@ -29,7 +30,7 @@ class Connection : public std::enable_shared_from_this< Connection >
 private:
     std::shared_ptr< Hive > m_hive;
     asio::ip::tcp::socket m_socket;
-    asio::strand m_io_strand;
+    asio::io_service::strand m_io_strand;
     asio::basic_waitable_timer<std::chrono::high_resolution_clock> m_timer;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_last_time;
     std::vector< uint8_t > m_recv_buffer;
@@ -92,7 +93,7 @@ public:
     asio::ip::tcp::socket & GetSocket();
 
     // Returns the strand object.
-    asio::strand & GetStrand();
+    asio::io_service::strand & GetStrand();
 
     // Sets the application specific receive buffer size used. For stream
     // based protocols such as HTTP, you want this to be pretty large, like
@@ -142,7 +143,7 @@ class Acceptor : public std::enable_shared_from_this< Acceptor >
 private:
     std::shared_ptr< Hive > m_hive;
     asio::ip::tcp::acceptor m_acceptor;
-    asio::strand m_io_strand;
+    asio::io_service::strand m_io_strand;
     asio::basic_waitable_timer<std::chrono::high_resolution_clock> m_timer;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_last_time;
     int32_t m_timer_interval;
@@ -187,7 +188,7 @@ public:
     asio::ip::tcp::acceptor & GetAcceptor();
 
     // Returns the strand object.
-    asio::strand & GetStrand();
+    asio::io_service::strand & GetStrand();
 
     // Sets the timer interval of the object. The interval is changed after
     // the next update is called. The default value is 1000 ms.

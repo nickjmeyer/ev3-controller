@@ -6,6 +6,7 @@
 #include <queue>
 #include <thread>
 #include <ncurses.h>
+#include <glog/logging.h>
 
 namespace Ev3Controller {
 
@@ -460,6 +461,8 @@ void InputPoller::print_menu_drive() {
 
 int main( int argc, char * argv[] )
 {
+    google::InitGoogleLogging(argv[0]);
+
     std::shared_ptr<Ev3Controller::Ev3Server> ballSrv(
             new Ev3Controller::Ev3Server() );
 

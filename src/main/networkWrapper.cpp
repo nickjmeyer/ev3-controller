@@ -403,7 +403,7 @@ asio::ip::tcp::socket & Connection::GetSocket()
     return m_socket;
 }
 
-asio::strand & Connection::GetStrand()
+asio::io_service::strand & Connection::GetStrand()
 {
     return m_io_strand;
 }

@@ -17,6 +17,8 @@ add_definitions(-DASIO_STANDALONE=1)
 add_definitions(-DASIO_HEADER_ONLY=1)
 add_definitions(-DASIO_NO_TYPEID=1)
 
+include_directories(libs/asio/asio/include)
+
 find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(Glog REQUIRED)
