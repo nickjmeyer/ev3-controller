@@ -7,16 +7,21 @@
   ~/ev3dev`.
 - Clone controller code `git clone
   https://github.com/nickjmeyer/ev3-controller`.
-- Initialize Asio submodule `git submodule init asio`.
-- Build directory `cd ev3-controller && mkdir build && cd build`.
+- Setup Asio submodule `cd ev3-controller && git submodule init && git
+  submodule upate`.
+- Build directory `mkdir build && cd build`.
 - Build library `cmake -DCMAKE_BUILD_TYPE=Release .. && make`.
 
 ## running on desktop
+To run on a desktop, clone the `nickjmeyer/ev3-robot-client`
+repository and compile.
+
 - Open a new terminal `cd ~/ev3dev/ev3-controller`.
 - Run server `./build/src/main/ev3Server`.
-- Run the client in the `ev3-robot-client` repository.
+- Open a new terminal and go to`cd ~/ev3dev/ev3-controller`.
+- Run client `ev3Client` from the ev3-robot-client repo.
 - Press `r` to refresh list of clients.  Should see alpha-numeric
-  strings.
+  strings for each client running.
 - Use the arrow keys to scroll up and down and press enter to select a
   robot.
 - After selecting a robot, use the arrow keys to control the robot's
