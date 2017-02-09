@@ -1,3 +1,6 @@
+// A network wrapper class modified from the tutorial:
+// https://www.gamedev.net/blog/950/entry-2249317-a-guide-to-getting-started-with-boostasio/
+
 #ifndef NETWORK_WRAPPER_HPP
 #define NETWORK_WRAPPER_HPP
 
