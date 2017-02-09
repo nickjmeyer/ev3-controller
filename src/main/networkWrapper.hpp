@@ -1,5 +1,5 @@
-#ifndef NETWORK_WRAPPER_HPP_
-#define NETWORK_WRAPPER_HPP_
+#ifndef NETWORK_WRAPPER_HPP
+#define NETWORK_WRAPPER_HPP
 
 //-----------------------------------------------------------------------------
 
